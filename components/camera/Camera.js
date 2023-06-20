@@ -2,20 +2,23 @@ import {Camera, CameraType} from 'expo-camera';
 import {useRef} from 'react';
 import {useEffect} from 'react';
 import {useState} from 'react';
-import {Button, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import * as FileSystem from 'expo-file-system';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import * as MediaLibrary from 'expo-media-library';
 
 import {SavePicture} from '../../cameraMethods/savePicture/savePicture';
+import Button from '../button/Button';
 
 export default function Camara() {
 	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const [camera, setCamera] = useState(null);
 	const [image, setImage] = useState(null);
+	const [permission, setPermission] = useState(null);
 	const [type, setType] = useState(Camera.Constants.Type.back);
 	useEffect(() => {
 		(async () => {
 			const cameraStatus = await Camera.requestCameraPermissionsAsync();
 			setHasCameraPermission(cameraStatus.status === 'granted');
+			setPermission(await MediaLibrary.requestPermissionsAsync());
 		})();
 	}, []);
 
@@ -27,7 +30,7 @@ export default function Camara() {
 		if (camera) {
 			const data = await camera.takePictureAsync(null);
 			setImage(data.uri);
-			SavePicture(data.uri);
+			SavePicture(data.uri, permission);
 		}
 	};
 	if (hasCameraPermission === false) {
@@ -38,43 +41,51 @@ export default function Camara() {
 		<View style={styles.container}>
 			<Camera style={styles.camera} type={type} ref={(ref) => setCamera(ref)}>
 				<View style={styles.buttonContainer}>
-					<TouchableOpacity style={styles.button} onPress={toggleCameraType}>
-						<Text style={styles.text}>Flip Camera</Text>
-					</TouchableOpacity>
+					<Button
+						onPress={() => toggleCameraType()}
+						text={'Flip Camera'}
+						theme={'secondary'}
+						size={'double'}
+					/>
 				</View>
-				<TouchableOpacity style={styles.button} onPress={takePicture}>
-					<Text style={styles.text}>Take Picture</Text>
-				</TouchableOpacity>
+				<View style={styles.bottomButtonContainer}>
+					<Button onPress={() => takePicture()} text={'Take Picture'} theme={'accent'} />
+				</View>
 			</Camera>
-			<Button title="Take Picture" onPress={() => takePicture()} />
-			{image && <Image source={{uri: image}} style={{flex: 1}} />}
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
 	container: {
-		width: '90%',
-		height: '75%',
+		width: '100%',
+		height: '100%',
 		justifyContent: 'center',
 	},
 	camera: {
-		width: '90%',
-		height: '75%',
+		width: '100%',
+		height: '100%',
 		justifyContent: 'center',
 	},
 	buttonContainer: {
-		flexDirection: 'row',
-		backgroundColor: 'green',
-		margin: 64,
+		position: 'absolute',
+		top: 0,
+		width: '100%',
+		alignItems: 'flex-end',
+		paddingRight: 5,
+		paddingTop: 45,
 	},
 	button: {
-		alignSelf: 'flex-end',
 		alignItems: 'center',
 	},
 	text: {
 		fontSize: 24,
 		fontWeight: 'bold',
 		color: 'white',
+	},
+	bottomButtonContainer: {
+		flex: 1,
+		justifyContent: 'flex-end',
+		marginBottom: 20,
 	},
 });
