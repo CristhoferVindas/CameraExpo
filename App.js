@@ -6,8 +6,6 @@ import Camara from './components/camera/Camera';
 export default function App() {
 	return (
 		<View style={styles.container}>
-			<Text>Hola</Text>
-			<Button text={'Abrir camara'} theme={'secondary'} />
 			<Camara />
 			<StatusBar style="auto" />
 		</View>
